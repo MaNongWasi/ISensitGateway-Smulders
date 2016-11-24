@@ -1,0 +1,5 @@
+command to edit using crontab: 
+sudo crontab -e
+
+code to edit in crontab file:
+30 8 * * * /sbin/shutdown -r
