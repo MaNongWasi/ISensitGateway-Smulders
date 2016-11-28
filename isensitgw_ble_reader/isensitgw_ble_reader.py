@@ -20,7 +20,7 @@ bad_lift = 0
 row_count = 0 
 table_name = "acc_beacon_table"
 
-def get_lift(beacon_id, accx, accy, accz, rssi):
+def get_lift(beacon_id, accx, accy, accz, rssi, num):
     levelPitch = 0
     levelRoll = 0
 
@@ -97,11 +97,12 @@ def get_lift(beacon_id, accx, accy, accz, rssi):
         pitchList[levelPitch - 1] = pitchList[levelPitch - 1] + 1
     if levelRoll > 0:
 	rollList[levelRoll - 1] = rollList[levelRoll - 1] + 1    
-  
+    
+    print("num :", num)
     print("id : ", beacon_id)
     print("teller : ", teller)
 
-    db.insert_acc_pitch_roll_data(beacon_id, accx, accy, accz, rssi, currenttime, acc_sum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller)
+    db.insert_acc_pitch_roll_data(beacon_id, accx, accy, accz, rssi, currenttime, acc_sum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num)
     db.close_db()
 #    print currenttime
     
@@ -113,8 +114,9 @@ def get_degree(r):
             accy = float(r["values"]["ACCY"][0])
             accz = float(r["values"]["ACCZ"][0])
             rssi = r["values"]["RSSI"][0]
+	    num = r["values"]["NUM"][0]
 
-	    get_lift(int(id.strip('\0')), accx, accy, accz, rssi) 
+	    get_lift(int(id.strip('\0')), accx, accy, accz, rssi, num) 
 
 
 sock = hci_start_scan(dev_id) 
