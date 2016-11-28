@@ -45,6 +45,7 @@ CREATE TABLE `acc_beacons` (
   `levelRoll4` int(11) DEFAULT NULL,
   `levelRoll5` int(11) DEFAULT NULL,
   `teller` int(11) DEFAULT NULL,
+  `num` int(11) DEFAULT NULL,
   PRIMARY KEY (`row_count`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1521762 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -94,4 +95,15 @@ CREATE TABLE `noise_sensors` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users` (
+  `row_count` int(11) NOT NULL AUTO_INCREMENT,
+  `beacon_id` int(11) DEFAULT NULL,
+  `cal_val` float(10,2) NOT NULL,
+  `pitch_cal` float NOT NULL,
+  `roll_cal` float NOT NULL,
+  PRIMARY KEY (`row_count`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
 -- Dump completed on 2016-09-09 12:51:01
