@@ -35,6 +35,7 @@ LDeviceMode = [
                 ["UUID", 10, 20, "S", " ", "DI"],
                 ["ID", 20, 26, "A", " ", "DI"],
                 ["RSSI", -1, 0, "R", "dBm", "V"],
+		["NUM", -13, -12, "B", " ", "V"],
                 ["ACCX", -11, -10, "F", "g", "V"],
                 ["ACCY", -9, -8, "F", "g", "V"],
                 ["ACCZ", -7, -6, "F", "g", "V"],
@@ -65,8 +66,8 @@ LDeviceMode = [
 # device_type: device_name
 DDevice = {
     #    "699ebc80e1f311e39a0f0cf3ee3bc012": [LSupportedDevices[0], LDeviceMode[0]],
-    	"0f09454d426561636f6e": [LSupportedDevices[0], LDeviceMode[2]],
-        "ebefd08370a247c89837e7b5634df524" :[LSupportedDevices[1], LDeviceMode[0]],
+    "0f09454d426561636f6e": [LSupportedDevices[0], LDeviceMode[2]],
+    #    "ebefd08370a247c89837e7b5634df524" :[LSupportedDevices[1], LDeviceMode[0]],
     #    "fda50693a4e24fb1afcfc6eb07647825": [LSupportedDevices[3], LDeviceMode[0]],
     #    "e2c56db5dffb48d2b060d0f5a71096e0": [LSupportedDevices[5], LDeviceMode[0]],
     #    "05160818": [LSupportedDevices[6], LDeviceMode[2]],
@@ -158,6 +159,8 @@ def parseDeviceStruct(device_structure, pkt):
             result = getRSSI(input)
         if item[3] == "A":
             result = getACIItoString(input)
+	if item[3] == "B":
+	    result = getByte(input)
         if item[5] == "DI":
             deviceInfoDict[item[0]] = str(result), item[4]
         if item[5] == "V":
@@ -175,6 +178,9 @@ def getInt(pkt):
         myInteger += struct.unpack("B", c)[0] * multiple
         multiple = 1
     return myInteger
+
+def getByte(pkt):
+    return struct.unpack("B", pkt)[0]
 
 
 def getFloat(pkt, value_type):
@@ -252,17 +258,18 @@ def getDegree(f1, f2, f3, cal_pitch, accx):
 
 
 def getPitch(accx, accy, accz, cal_pitch):
-    pitch = atan(accz/(sqrt(pow(accx,2) + pow(accy,2)))) *180/pi
+    pitch = atan(accz/sqrt(pow(accx,2) + pow(accy,2))) * 180 / pi
     if accx < 0:
-        if accz > 0:
-            pitch = 180 - pitch
-        else:
-            pitch = -180 - pitch
+	if accz > 0:
+	    pitch = 180 - pitch
+	else:
+	    pitch = -180 - pitch
     return pitch - cal_pitch
 
 def getRoll(accx, accy, accz, cal_roll):
-    roll = atan(accy/(sqrt(pow(accx,2) + pow(accz,2)))) *180/pi
+    roll = atan(accy/sqrt(pow(accx,2) + pow(accz,2))) * 180 / pi
     return roll - cal_roll
 
 def getAccSum(accx, accy, accz):
     return sqrt(pow(accx,2) + pow(accy,2) + pow(accz,2))
+
