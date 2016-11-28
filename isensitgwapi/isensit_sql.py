@@ -209,12 +209,12 @@ class ISensitGWMysql(object):
         else:
             self.connection.commit()
 
-    def insert_acc_pitch_roll_data(self, beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, currenttime, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller):
+    def insert_acc_pitch_roll_data(self, beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, currenttime, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num):
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                sql = "INSERT INTO " + self.table + " VALUES (NULL, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-		cursor.execute(sql, (beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList[0], pitchList[1], pitchList[2], pitchList[3], rollList[0], rollList[1], rollList[2], rollList[3], rollList[4], teller,))
+                sql = "INSERT INTO " + self.table + " VALUES (NULL, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+		cursor.execute(sql, (beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList[0], pitchList[1], pitchList[2], pitchList[3], rollList[0], rollList[1], rollList[2], rollList[3], rollList[4], teller, num,))
         except Exception as e:
             print("Error :", str(e))
             self.connection.rollback()
