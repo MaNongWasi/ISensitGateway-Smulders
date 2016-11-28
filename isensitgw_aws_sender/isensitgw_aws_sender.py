@@ -107,12 +107,12 @@ except Exception as e:
 while True:
     if working():
 	upload_data()
-	time.sleep(1)
-#	if half_hour():
-#            upload_data()
-#	else:
-#	    print("not half hour")
-#	    time.sleep(60)
+#	time.sleep(1)
+	if half_hour():
+            upload_data()
+	else:
+	    print("not half hour")
+	    time.sleep(60)
     else:
         print("not working hour")
 
