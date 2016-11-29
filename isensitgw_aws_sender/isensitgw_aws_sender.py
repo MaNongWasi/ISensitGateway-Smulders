@@ -67,6 +67,7 @@ def upload_data():
                     deviceValueDict['levelRoll5'] = d['levelRoll5']
 		    deviceValueDict['total_count'] = d['teller']
 		    deviceValueDict['rssi'] = d['beacon_rssi']
+		    deviceValueDict['num'] = d['num']
 #	  	    deviceValueDict['upload_at'] = str(datetime.datetime.now())
 		    created_at = str(d['created_at'])
             	    deviceValueDict['created_at'] = str(d["created_at"])
