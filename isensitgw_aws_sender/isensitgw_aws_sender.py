@@ -45,8 +45,6 @@ def upload_data():
     	if data is None:
             print("No data left")
     	else:
-	    total_total = 0
-	    bad_total = 0
 	    for beacon_id in data:
 	        id = beacon_id.values()[0]
 	        if id is not None:
