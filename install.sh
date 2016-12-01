@@ -314,6 +314,33 @@ while true; do
 				echo "${YELLOW}Skipping Module."
 			fi
 				echo  $Reset
+				
+			#installing modules
+			read -r -p "Do you want to install the RSSI Sender? [y/N] " response
+			echo
+			response=${response,,}    # tolower
+			if [[ $response =~ ^(yes|y)$ ]]
+			then			
+        #sudo echo ${Underline}"Installing requests 2.6.0"$Reset
+        #sudo pip install requests==2.6.0
+				module=isensitgw_rssi_sender
+				module_dir=$home_dir/$module
+				
+				#installing Python reader
+				sudo cp -rf $module $home_dir/
+				
+				sudo echo ${Underline}"Installing rssi sender"$Reset
+				sudo chmod +x $module_dir/*
+				sudo python -m compileall $module_dir/$module.py
+				#sudo touch rc.local
+				#sudo echo "sudo $module_dir/loop_$module.sh &" >> rc.local
+#				sudo rm -rf $module_dir/*.py
+				sudo echo ${GREEN}"Done"
+				sudo echo  $Reset
+			else
+				echo "${YELLOW}Skipping Module."
+			fi
+				echo  $Reset
 			
 			#installing VTEC local website
 			module_dir=/root/usf/usf_local_website

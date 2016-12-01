@@ -111,6 +111,7 @@ class ISensitGWMysql(object):
         delete_stmt = "DELETE FROM " + self.table + " WHERE row_count = %s"
 #	print delete_stmt, "  ", row_count
         cursor.execute(delete_stmt, (row_count,))
+	cursor.close()
         self.connection.commit()
 
     def delete_acc_beacon_data(self, table_name, beacon_id, row_count):
@@ -119,6 +120,7 @@ class ISensitGWMysql(object):
         delete_stmt = "DELETE FROM " + self.table + " WHERE beacon_id = %s AND row_count < %s"
 #       print delete_stmt, "  ", row_count
         cursor.execute(delete_stmt, (beacon_id, row_count,))
+	cursor.close()
         self.connection.commit()
 
         
@@ -173,6 +175,7 @@ class ISensitGWMysql(object):
         cursor = self.connection.cursor()
         delete_stmt = "DELETE FROM " + self.table + " WHERE user_id %s"
         cursor.execute(delete_stmt, (row_count,))
+	cursor.close()
         self.connection.commit()
         
     def insert_noise_data(self, noise_id, sensor_db):
@@ -259,5 +262,63 @@ class ISensitGWMysql(object):
             else:
                 return None
         
+    def read_earliest_acc_beacon_data(self, beacon_id):
+        try:
+            with self.connection.cursor() as cursor:
+                # Create a new record
+                                sql = "SELECT created_at from acc_beacons WHERE beacon_id = %s ORDER BY created_at asc limit 1"
+                                cursor.execute(sql, (beacon_id))
+
+        except Exception as e:
+            print("Error :", str(e))
+            return None
+
+        else:
+            if cursor.rowcount > 0:
+                return cursor.fetchone()
+            else:
+                return None
+
+    def read_earliest_acc_beacon_datas(self, beacon_id, created_at):
+        try:
+            with self.connection.cursor() as cursor:
+                # Create a new record
+                                sql = "SELECT beacon_rssi from acc_beacons WHERE beacon_id = %s and created_at = %s"
+                                cursor.execute(sql, (beacon_id, created_at))
+
+        except Exception as e:
+            print("Error :", str(e))
+            return None
+
+        else:
+            if cursor.rowcount > 0:
+                return cursor.fetchall()
+            else:
+                return None
+
+    def read_next_acc_beacon_data(self, beacon_id, created_at):
+        try:
+            with self.connection.cursor() as cursor:
+                # Create a new record
+                cursor.execute("SELECT * from acc_beacons where beacon_id = %s and created_at > %s limit 1", (beacon_id, created_at))
+
+        except Exception as e:
+            print("Error :", str(e))
+            return None
+
+        else:
+            if cursor.rowcount > 0:
+                return cursor.fetchall()
+            else:
+                return None
+
+    def delete_earliest_beacon_data(self, beacon_id, created_at):
+        cursor = self.connection.cursor()
+        delete_stmt = "DELETE FROM acc_beacons WHERE beacon_id = %s and created_at = %s"
+#       print delete_stmt, "  ", row_count
+        cursor.execute(delete_stmt, (beacon_id, created_at,))
+        self.connection.commit()
+
+
     def isConnected(self):
 	return self.connection
