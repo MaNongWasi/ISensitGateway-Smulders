@@ -19,6 +19,8 @@ class ISensitDynamodb():
 	self.table_person = self.dynamodb.Table(person_table_name)
 	self.device = device    
 	self.table_rssi = self.dynamodb.Table("ISensitRSSI")
+ 	self.table_rssi_total = self.dynamodb.Table("ISensitRSSITotal")
+	self.gateways = ["SMULDERS_GW_001", "SMULDERS_GW_002", "SMULDERS_GW_003", "SMULDERS_GW_004"]
 
     def get_item(self, created_at):
 	currenttime = datetime.datetime.strptime(created_at,'%Y-%m-%d %H:%M:%S')
@@ -100,13 +102,111 @@ class ISensitDynamodb():
 	    'gatewayID': self.gatewayID,
 	    'upload_at': upload_at,
 	    'rssi': rssi,
+	    'timestamp': created_at + "/" + self.gatewayID,
 	    'created_at': created_at,
 	}
 
 	with self.table_rssi.batch_writer() as batch:
 #	    print("item_rssi ", Item_rssi)
 	    batch.put_item(Item_rssi)
+
+    def get_created_at_item(self, deviceID):
+        try:
+            query = Key('deviceID').eq(deviceID)
+            prj_exp = "#created_at"
+            prj_attr={ "#created_at":"created_at"}
+            response = self.table_rssi.query(
+                ProjectionExpression=prj_exp,
+                ExpressionAttributeNames=prj_attr,
+                KeyConditionExpression=query,
+                Limit=1,
+                ScanIndexForward=False,
+                )
+        except ClientError as e:
+            print(e.response['Eorror']['Message'])
+        else:
+            if 'Count' in response:
+                if(response['Count'] > 0):
+                    if('Items' in response):
+                        return response['Items'][0]['created_at']
+                    else:
+                        print("No Items in response")
+                        return None
+                else:
+                    print("Empty Set")
+                    return None
+            else:
+                print("No response")
+                return None
+
+    def get_rssi_item(self, deviceID, created_at):
+        try:
+            query = Key('deviceID').eq(deviceID) & Key('timestamp').begins_with(created_at)
+            prj_exp = "#gatewayID, #rssi, #upload_at, #created_at"
+            prj_attr = {"#gatewayID": "gatewayID", "#rssi": "rssi", "#upload_at":"upload_at", "#created_at":"created_at"}
+            response = self.table_rssi.query(
+                ProjectionExpression=prj_exp,
+                ExpressionAttributeNames=prj_attr,
+                KeyConditionExpression=query,
+                ScanIndexForward=False,
+            )
+
+        except ClientError as e:
+            print(e.response['Error']['Message'])
+        else:
+            if 'Count' in response:
+                if response['Count'] > 0:
+                    if('Items' in response):
+                        return response['Items']
+                    else:
+                        print("No Items in response")
+                        return None
+                else:
+                    print("Empty Set")
+                    return None
+            else:
+	 	print("No response")
+                return None
+
+    def insert_rssi_total(self, deviceID, data):
+        upload_at = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        try:
+            Item_rssi_total = {
+                'deviceID': deviceID,
+                'gatewayID':data['gatewayID'],
+                'upload_at': upload_at,
+                'created_at': data['created_at'],
+                'rssi': data['rssi'],
+            }
+
+            with self.table_rssi_total.batch_writer() as batch:
+                print("item ", Item_rssi_total)
+                batch.put_item(Item_rssi_total)
+        except ClientError as e:
+            print (e.response['Error']['Message'])
+            return False
+        else:
+            return True
+
+    def delete_rssi_item(self, deviceID, created_at):
+        for gw in self.gateways:
+            timestamp = created_at + "/" + gw
 	
+            try:
+                delete_item = {
+                    'deviceID': deviceID,
+                    'timestamp': timestamp
+                }
+                print(delete_item)
+                with self.table_rssi.batch_writer() as batch:
+                    batch.delete_item(delete_item)
+
+            except ClientError as e:
+                print (e.response['Error']['Message'])
+            else:
+                print("Delete Item succeed")
+#                print(json.dumps(response, indent = 4, cls = DecimalEncoder))
+
 
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
