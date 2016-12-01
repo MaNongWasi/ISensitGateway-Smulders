@@ -105,7 +105,7 @@ except Exception as e:
 
 while True:
     if working():
-	upload_data()
+#	upload_data()
 #	time.sleep(1)
 	if half_hour():
             upload_data()
