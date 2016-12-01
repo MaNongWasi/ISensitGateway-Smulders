@@ -4,7 +4,7 @@
     "secret_key": "b",
     "token": "d"
   },
-  "gatewayID": "002",
+  "gatewayID": "001",
   "gatewayName": "SMULDERS_GW",
   "fdID": "001",
   "noiseID":"001",
