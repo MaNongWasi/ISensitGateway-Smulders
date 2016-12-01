@@ -37,6 +37,7 @@ def upload_data():
 		    if created_time is not None:
 			created_at = created_time["created_at"]
 			if current(created_at):
+			    print created_at
  		            d = db.read_earliest_acc_beacon_datas(id, created_at)
 		            if d is not None:
 #		    		print len(d)
@@ -65,3 +66,6 @@ except Exception as e:
 while True:
     if working():
         upload_data()
+    else:
+	print("not working hour")
+	time.sleep(60)
