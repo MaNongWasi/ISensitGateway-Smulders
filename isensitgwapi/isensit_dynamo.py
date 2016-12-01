@@ -18,6 +18,7 @@ class ISensitDynamodb():
 #    	self.table_save = self.dynamodb.Table(total_table_name)
 	self.table_person = self.dynamodb.Table(person_table_name)
 	self.device = device    
+	self.table_rssi = self.dynamodb.Table("ISensitRSSI")
 
     def get_item(self, created_at):
 	currenttime = datetime.datetime.strptime(created_at,'%Y-%m-%d %H:%M:%S')
@@ -92,6 +93,20 @@ class ISensitDynamodb():
             print("item_person ", Item_person)
             batch.put_item(Item_person)
 
+    def insert_rssi_data(self, deviceID, rssi, created_at):
+        upload_at = str(datetime.datetime.now())
+        Item_rssi = {
+            'deviceID': deviceID,
+	    'gatewayID': self.gatewayID,
+	    'upload_at': upload_at,
+	    'rssi': rssi,
+	    'created_at': created_at,
+	}
+
+	with self.table_rssi.batch_writer() as batch:
+#	    print("item_rssi ", Item_rssi)
+	    batch.put_item(Item_rssi)
+	
 
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
