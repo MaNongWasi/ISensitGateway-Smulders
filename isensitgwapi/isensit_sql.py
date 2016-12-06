@@ -2,7 +2,7 @@
 
 import pymysql
 from isensit_gw import ISensitGW
-
+import datetime
 
 class ISensitGWMysql(object):
     def __init__(self):
@@ -13,6 +13,8 @@ class ISensitGWMysql(object):
         self.connection = None
         self.gatewayID = self.config_data.get_gateway_name()
         self.sleeptime = self.config_data.get_mysql_sleeptime()
+    	self.start_time = self.config_data.get_start_time()
+	self.end_time = self.config_data.get_end_time()
 
     def connect_to_db(self):
         try:
@@ -226,6 +228,22 @@ class ISensitGWMysql(object):
         else:
             self.connection.commit()
 
+    def insert_rssi_data(self, beacon_id, rssi_avr, created_at):
+        self.table = self.config_data.get_mysql_credentials()['noise_sensor_table']
+        try:
+            with self.connection.cursor() as cursor:
+                # Create a new record
+                sql = "INSERT INTO rssi VALUES (NULL, %s, %s, %s)"
+                cursor.execute(sql, (beacon_id, rssi_avr, created_at))
+
+        except Exception as e:
+            print("Error :", str(e))
+            self.connection.rollback()
+            return False
+
+        else:
+            self.connection.commit()
+
 
     def read_cal_val(self, beacon_id):
         try:
@@ -322,3 +340,17 @@ class ISensitGWMysql(object):
 
     def isConnected(self):
 	return self.connection
+
+    def half_hour(self):
+    	currenttime = datetime.datetime.now()
+    	return currenttime.minute == 00 or currenttime.minute == 30
+
+
+    def working(self):
+    	currenttime = datetime.datetime.now()
+    	currentdate = currenttime.strftime("%Y-%m-%d")
+    	start_t = datetime.datetime.strptime(currentdate + self.start_time, "%Y-%m-%d %H:%M:%S")
+    	end_t = datetime.datetime.strptime(currentdate + self.end_time, "%Y-%m-%d %H:%M:%S")
+    	today = currenttime.weekday()
+        return currenttime > start_t and currenttime < end_t and today < 5
+
