@@ -20,16 +20,6 @@ bad_lift = 0
 row_count = 0 
 table_name = "acc_beacon_table"
 
-def working():
-    currenttime = datetime.datetime.now()
-    currentdate = currenttime.strftime("%Y-%m-%d")
-    start_t = datetime.datetime.strptime(currentdate + start_time, "%Y-%m-%d %H:%M:%S")
-    end_t = datetime.datetime.strptime(currentdate + end_time, "%Y-%m-%d %H:%M:%S")
-    today = currenttime.weekday()
-    return True
-
-
-
 def get_lift(beacon_id, accx, accy, accz, rssi, num):
     levelPitch = 0
     levelRoll = 0
@@ -133,8 +123,6 @@ sock = hci_start_scan(dev_id)
 try:
     # initialize database reader
     db = ISensitGWMysql()
-    start_time = db.config_data.get_start_time()
-    end_time = db.config_data.get_end_time()
 #    db.connect_to_db()
 #    total_count = db.read_acc_beacon_total_count()
 #    if total_count is None:
@@ -148,7 +136,7 @@ except Exception as e:
     exit(-1)
 
 while True:
-    if working():
+    if db.working():
         returnedList = parse_events(sock)
     	if returnedList is not None:
 	    if returnedList is not False:

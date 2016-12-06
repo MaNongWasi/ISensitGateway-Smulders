@@ -24,17 +24,6 @@ def get_limit_time(id):
     	    limit_time = time[0] + ":30:00"
         return limit_time
 
-def half_hour():
-    currenttime = datetime.datetime.now()
-    return currenttime.minute == 00 or currenttime.minute == 30
-
-def working():
-    currenttime = datetime.datetime.now()
-    currentdate = currenttime.strftime("%Y-%m-%d")
-    start_t = datetime.datetime.strptime(currentdate + start_time, "%Y-%m-%d %H:%M:%S")
-    end_t = datetime.datetime.strptime(currentdate + end_time, "%Y-%m-%d %H:%M:%S")
-    today = currenttime.weekday()
-    return True 
 
 def get_created_at_time(id):
     return dydb.get_created_at_item(id)
@@ -69,8 +58,8 @@ except Exception as e:
 
 
 while True:
-    if working():
-	if half_hour():
+    if db.working():
+	if db.half_hour():
             for id in beacons:
 	  	time_end = get_limit_time(id)
 	  	created_at = get_created_at_time(id)

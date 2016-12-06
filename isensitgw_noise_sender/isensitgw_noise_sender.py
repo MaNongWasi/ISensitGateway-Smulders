@@ -18,19 +18,9 @@ row_count = 0
 table_name = "noise_sensor_table"
 device = "Noise"
 
-def working():
-    currenttime = datetime.datetime.now()
-    currentdate = currenttime.strftime("%Y-%m-%d")
-    start_t = datetime.datetime.strptime(currentdate + start_time, "%Y-%m-%d %H:%M:%S")
-    end_t = datetime.datetime.strptime(currentdate + end_time, "%Y-%m-%d %H:%M:%S")
-    today = currenttime.weekday()
-    return currenttime > start_t and currenttime < end_t and today < 5
-
 
 try:
     db = ISensitGWMysql()
-    start_time = db.config_data.get_start_time()
-    end_time = db.config_data.get_end_time()
 #    print(db.config_data.get_dynamodb_table_save())
 #    dydb = ISensitDynamodb(db.gatewayID, db.config_data.get_dynamodb_table(), db.config_data.get_dynamodb_table_save(), db.config_data.get_dynamodb_table_person(), device)
     dydb = ISensitDynamodb(db.gatewayID, db.config_data.get_dynamodb_table(), db.config_data.get_dynamodb_table_person(), device)
@@ -54,7 +44,7 @@ while True:
 	
 	    dydb.insert_data(created_at, deviceInfoDict, deviceValueDict) 	    
             
-	    if working():
+	    if db.working():
 	    	old_json = dydb.get_item(created_at)
             	if old_json is None:
                     noise_count = 0;

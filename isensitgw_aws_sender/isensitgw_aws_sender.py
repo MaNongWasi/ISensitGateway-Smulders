@@ -22,20 +22,6 @@ count = 0
 table_name = "acc_beacon_table"
 device = "Acc"
 
-def half_hour():
-    currenttime = datetime.datetime.now()
-    return currenttime.minute == 00 or currenttime.minute == 30
-
-
-def working():
-    currenttime = datetime.datetime.now()
-    currentdate = currenttime.strftime("%Y-%m-%d")
-    start_t = datetime.datetime.strptime(currentdate + start_time, "%Y-%m-%d %H:%M:%S")
-    end_t = datetime.datetime.strptime(currentdate + end_time, "%Y-%m-%d %H:%M:%S")
-    today = currenttime.weekday()
-    return currenttime > start_t and currenttime < end_t and today < 5
-
-
 #while True:
 def upload_data():
     try:
@@ -95,8 +81,6 @@ def upload_data():
 
 try:
     db = ISensitGWMysql()
-    start_time = db.config_data.get_start_time()
-    end_time = db.config_data.get_end_time()
 #    print(db.config_data.get_dynamodb_table_person())
 #    dydb = ISensitDynamodb(db.gatewayID, db.config_data.get_dynamodb_table(), db.config_data.get_dynamodb_table_save(), db.config_data.get_dynamodb_table_person(), device)
     dydb = ISensitDynamodb(db.gatewayID, db.config_data.get_dynamodb_table(), db.config_data.get_dynamodb_table_person(), device)
@@ -104,14 +88,13 @@ except Exception as e:
     print("Error in ISensitDynamodb, reason: ", str(e))
 
 while True:
-    if working():
+    if db.working():
 #	upload_data()
 #	time.sleep(1)
-	if half_hour():
+	if db.half_hour():
             upload_data()
 	else:
 	    print("not half hour")
 	    time.sleep(60)
     else:
         print("not working hour")
-
