@@ -59,7 +59,7 @@ def upload_data():
                     dydb.insert_data(created_at, deviceInfoDict, deviceValueDict)
                     dydb.insert_user_data(str(d["beacon_id"]), deviceInfoDict, deviceValueDict, created_at)
 		
-#		    db.delete_acc_beacon_data(table_name, id, row_count)
+		    db.delete_acc_beacon_data(table_name, id, row_count)
        	 	    print("upload successful, deleting row..")
 		   	
     except Exception as e:
@@ -90,9 +90,9 @@ except Exception as e:
 while True:
     if db.working():
 #	upload_data()
-#	time.sleep(1)
+	time.sleep(1)
 	if db.half_hour():
-            upload_data()
+	    upload_data()
 	else:
 	    print("not half hour")
 	    time.sleep(60)
