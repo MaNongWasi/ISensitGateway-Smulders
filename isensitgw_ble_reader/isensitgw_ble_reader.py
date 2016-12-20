@@ -75,18 +75,23 @@ def get_lift(beacon_id, accx, accy, accz, rssi, num):
     currenttime = datetime.datetime.now()
 
     old_json = db.read_last_acc_beacon_data(table_name, beacon_id)
-#    print currenttime.strftime("%Y-%m-%d")
-#    print old_json['created_at'].split(" ")[0]
+
     if old_json is None:
+#	print "none"
+	row_count = 0
 	pitchList = [0, 0, 0, 0]
 	rollList = [0, 0, 0, 0, 0]
  	teller = 0
-    elif old_json['created_at'].split(" ")[0] is not currenttime.strftime("%Y-%m-%d"):
+    elif str(old_json['created_at'].split(" ")[0]) != currenttime.strftime("%Y-%m-%d"):
+#	print "new day" 
+	row_count = old_json["row_count"]
 	pitchList = [0, 0, 0, 0]
         rollList = [0, 0, 0, 0, 0]
         teller = 0
     else:
+	row_count = old_json["row_count"]
 	pitchList = [old_json["levelPitch1"], old_json["levelPitch2"], old_json["levelPitch3"], old_json["levelPitch4"]]
+#	print "pitchlist ", pitchList
 	rollList = [old_json["levelRoll1"], old_json["levelRoll2"], old_json["levelRoll3"], old_json["levelRoll4"],  old_json["levelRoll5"]]
 	teller = old_json["teller"]
 	    
@@ -95,14 +100,21 @@ def get_lift(beacon_id, accx, accy, accz, rssi, num):
 
     if levelPitch > 0:
         pitchList[levelPitch - 1] = pitchList[levelPitch - 1] + 1
+	print"pitchlist after ", pitchList
     if levelRoll > 0:
 	rollList[levelRoll - 1] = rollList[levelRoll - 1] + 1    
     
     print("num :", num)
     print("id : ", beacon_id)
     print("teller : ", teller)
-
+#    print("currenttime : ", currenttime)
+#    print "oldt ", old_json['created_at'].split(" ")[0]
+#    print "newt ", currenttime.strftime("%Y-%m-%d")
+    
     db.insert_acc_pitch_roll_data(beacon_id, accx, accy, accz, rssi, currenttime, acc_sum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num)
+    db.insert_rssi_pitch_roll_data(beacon_id, accx, accy, accz, rssi, currenttime, acc_sum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num)
+    if row_count > 0:
+	db.delete_data(table_name, row_count)
     db.close_db()
 #    print currenttime
     
@@ -140,7 +152,7 @@ while True:
         returnedList = parse_events(sock)
     	if returnedList is not None:
 	    if returnedList is not False:
-#	        if "782" in returnedList["device_info"]["ID"][0]:
+#	        if "3262" in returnedList["device_info"]["ID"][0]:
 		get_degree(returnedList)
 # time.sleep(1)
     else:
