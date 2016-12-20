@@ -95,20 +95,41 @@ class ISensitDynamodb():
             print("item_person ", Item_person)
             batch.put_item(Item_person)
 
-    def insert_rssi_data(self, deviceID, rssi, created_at):
-        upload_at = str(datetime.datetime.now())
-        Item_rssi = {
-            'deviceID': deviceID,
-	    'gatewayID': self.gatewayID,
-	    'upload_at': upload_at,
-	    'rssi': rssi,
-	    'timestamp': created_at + "/" + self.gatewayID,
-	    'created_at': created_at,
-	}
+#    def insert_rssi_data(self, deviceID, rssi, created_at):
+#        upload_at = str(datetime.datetime.now())
+#        Item_rssi = {
+#            'deviceID': deviceID,
+#	    'gatewayID': self.gatewayID,
+#	    'upload_at': upload_at,
+#	    'rssi': rssi,
+#	    'timestamp': created_at + "/" + self.gatewayID,
+#	    'created_at': created_at,
+#	}
 
-	with self.table_rssi.batch_writer() as batch:
-#	    print("item_rssi ", Item_rssi)
-	    batch.put_item(Item_rssi)
+#	with self.table_rssi.batch_writer() as batch:
+##	    print("item_rssi ", Item_rssi)
+#	    batch.put_item(Item_rssi)
+
+    def insert_rssi_data(self, data):
+	row = 0
+        with self.table_rssi.batch_writer() as batch:
+	    for d in data:
+                Item_rssi = {
+   	            'deviceID': str(d["beacon_id"]),
+        	    'gatewayID': self.gatewayID,
+                    'upload_at': str(datetime.datetime.now()),
+                    'rssi': d["rssi"],
+                    'timestamp': d["created_at"] + "/" + self.gatewayID,
+                    'created_at': d["created_at"],
+        	}
+
+                print("item_rssi ", Item_rssi)
+                batch.put_item(Item_rssi)
+		
+		if row < d["row_count"]:
+		    row = d["row_count"]
+        return row
+
 
     def get_created_at_item(self, deviceID):
         try:
