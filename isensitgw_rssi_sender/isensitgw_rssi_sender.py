@@ -9,6 +9,7 @@ from isensit_sql import *
 
 device = "Acc"
 table_name = "rssi_table"
+gw = "gw5"
 
 def current(created_at):
     currenttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -17,26 +18,18 @@ def current(created_at):
 def upload_data():
     try:
 	db.connect_to_db()
-	data = db.read_rssi_data()
+	data = db.read_first_data(table_name)
 	if data is None:
 	    print("No data left")
 	else:
-#	    row = 0
-	    row = dydb.insert_rssi_data(data)
-#	    count = 0
-#	    for d in data:
-#		count = count+1
-#	        row_count = d["row_count"]
-#	        id = d["beacon_id"]
-#	        rssi_avr = d["rssi"]
-#	        created_at = d["created_at"]
-#	        print id, rssi_avr, created_at
-#    	        dydb.insert_rssi_data(str(id), rssi_avr, created_at)
-#		if count > 500:
-#		    count = 0
-#		    row = row_count
-#  		    print "deleteing"
-	    db.delete_rssi_data(row)
+	    row_count = data["row_count"]
+	    id = str(data["beacon_id"])
+	    rssi_avr = data["rssi"]
+	    created_at = data["created_at"]
+	    print id, rssi_avr, created_at
+#    	    dydb.insert_rssi_data(id, rssi_avr, created_at)
+	    dydb.update_rssi_data(id, rssi_avr, created_at, gw)
+  	    db.delete_data(table_name, row_count)
     except Exception as e:
 	print("Error in Aws Sender, reason: ", str(e))
     else:
@@ -49,13 +42,13 @@ except Exception as e:
     print("Error in ISensitDynamodb, reason: ", str(e))
 
 while True:
-#    if db.working():
+    if db.working():
+	upload_data()
 #	if db.half_hour():
-     upload_data()
+#            upload_data()
 #        else:
 #	    print("not half hour")
 #	    time.sleep(60)
-#    else:
-#	print("not working hour")
-#  	time.sleep(60)
-
+    else:
+	print("not working hour")
+   	time.sleep(60)
