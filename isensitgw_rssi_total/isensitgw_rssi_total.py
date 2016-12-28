@@ -64,12 +64,11 @@ def upload_data(id, created_at):
 #	    elif item_info == "SMULDERS_GW_004":
 #		GW4 = GW4+1
 #		print "GW4 after ", GW4
-
-#	    succeed = db.insert_max_rssi(id, currentt, GW1, GW2, GW3, GW4)
+	        db.insert_max_rssi(id, currentt, gw_dict)
 	        dydb.insert_rssi_total2(id, gw_dict, currentt)
-#	    db.delete_acc_beacon_data(table_name,id,row_count)
+	        db.delete_acc_beacon_data(table_name,id,row_count)
 	        dydb.delete_rssi_item(id, currentt)
-	    db.close_db	 
+	    db.close_db()	 
 #            print(item_info)
 #	    if "gatewayID" in item_info and "created_at" in item_info and "rssi" in item_info:
 #                succeed = dydb.insert_rssi_total(id, item_info)
@@ -96,5 +95,6 @@ while True:
 	    time.sleep(60)
     else:
 	print("not working hour")
+
 
 
