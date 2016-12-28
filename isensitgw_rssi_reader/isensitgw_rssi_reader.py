@@ -16,7 +16,7 @@ def current(created_at):
 def upload_data():
     try:
 	db.connect_to_db()
-	data = db.read_distinct_acc_sensor_data()
+	data = db.read_distinct_acc_beacon_data()
 	if data is None:
 	    print("No data left")
 	else:
@@ -34,12 +34,14 @@ def upload_data():
 		            if d is not None:
 #		    		print len(d)
 		    	        for rssi in d:
-		 	            print "rssi ", rssi["beacon_rssi"]
+#		 	            print "rssi ", rssi["beacon_rssi"]
 		                    rssi_avr = rssi_avr + rssi["beacon_rssi"]
  	                        rssi_avr = rssi_avr / len(d)
 #		    	    print "avr ", rssi_avr
 		    	    db.insert_rssi_data(str(id), rssi_avr, str(created_at))
-			    db.delete_earliest_beacon_data(id, created_at)
+		 	    next_data = db.read_next_acc_beacon_data(id, created_at)
+			    if next_data is not None:
+				db.delete_earliest_beacon_data(id, created_at)
     except Exception as e:
 	print("Error in Aws Sender, reason: ", str(e))
     else:
@@ -55,4 +57,4 @@ while True:
         upload_data()
     else:
 	print("not working hour")
-#	time.sleep(60)
+	time.sleep(60)
