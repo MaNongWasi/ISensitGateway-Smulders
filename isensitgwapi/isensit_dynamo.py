@@ -95,20 +95,21 @@ class ISensitDynamodb():
             print("item_person ", Item_person)
             batch.put_item(Item_person)
 
-    def insert_rssi_data(self, deviceID, rssi, created_at):
-        upload_at = str(datetime.datetime.now())
-        Item_rssi = {
-            'deviceID': deviceID,
-	    'gatewayID': self.gatewayID,
-	    'upload_at': upload_at,
-	    'rssi': rssi,
-	    'timestamp': created_at + "/" + self.gatewayID,
-	    'created_at': created_at,
-	}
-
+    def insert_rssi_data(self, data):
+	row = 0
 	with self.table_rssi.batch_writer() as batch:
-#	    print("item_rssi ", Item_rssi)
-	    batch.put_item(Item_rssi)
+ 	    for d in data:
+                Item_rssi = {
+                    'deviceID': str(d["beacon_id"]),
+	            'gatewayID': self.gatewayID,
+	            'upload_at': str(datetime.datetime.now()),
+	            'rssi': d["rssi"],
+	            'timestamp': d["created_at"] + "/" + self.gatewayID,
+	            'created_at': d["created_at"],
+	        }
+
+	        print("item_rssi ", Item_rssi)
+	        batch.put_item(Item_rssi)
 
     def get_created_at_item(self, deviceID):
         try:
@@ -226,23 +227,28 @@ class ISensitDynamodb():
 #                print(json.dumps(response, indent = 4, cls = DecimalEncoder))
 
 
-    def update_rssi_data(self, deviceID, rssi, created_at, gatewayID):
+    def update_rssi_data(self, data, gatewayID):
+	row = 0
 	try:
-	    self.table_rssi.update_item(
-	        Key={
-		    'deviceID':deviceID,
-		    'created_at':created_at
-	        },
-	        UpdateExpression='SET ' + gatewayID + ' =:val',
-	        ExpressionAttributeValues={
-		    ':val':rssi
-	        }
-	    )
+	    for d in data:
+	  	print(d)
+	        self.table_rssi.update_item(
+	            Key={
+		        'deviceID': str(d["beacon_id"]),
+		        'created_at': d["created_at"]
+	            },
+	            UpdateExpression='SET ' + gatewayID + ' =:val',
+	            ExpressionAttributeValues={
+		        ':val': d["rssi"]
+	            }
+	        )
 	except ClientError as e:
 	    print (e.response['Error']['Message'])
 	else:
 	    print("update Item succeed")
-
+	    if row < d["row_count"]:
+	        row = d["row_count"]
+	    return row
 
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
