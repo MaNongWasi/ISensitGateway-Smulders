@@ -9,7 +9,7 @@ from isensit_sql import *
 
 device = "Acc"
 table_name = "rssi_table"
-gw = "gw5"
+gw = "GW1"
 
 def current(created_at):
     currenttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -18,18 +18,18 @@ def current(created_at):
 def upload_data():
     try:
 	db.connect_to_db()
-	data = db.read_first_data(table_name)
+	data = db.read_rssi_data()
 	if data is None:
 	    print("No data left")
 	else:
-	    row_count = data["row_count"]
-	    id = str(data["beacon_id"])
-	    rssi_avr = data["rssi"]
-	    created_at = data["created_at"]
-	    print id, rssi_avr, created_at
-#    	    dydb.insert_rssi_data(id, rssi_avr, created_at)
-	    dydb.update_rssi_data(id, rssi_avr, created_at, gw)
-  	    db.delete_data(table_name, row_count)
+#	    row_count = data["row_count"]
+#	    id = str(data["beacon_id"])
+#	    rssi_avr = data["rssi"]
+#	    created_at = data["created_at"]
+#	    print id, rssi_avr, created_at
+    	    row_count = dydb.insert_rssi_data(data)
+#	    dydb.update_rssi_data(data, gw)
+  	    db.delete_rssi_data(row_count)
     except Exception as e:
 	print("Error in Aws Sender, reason: ", str(e))
     else:
