@@ -164,11 +164,11 @@ class ISensitGWMysql(object):
 
 
 
-    def read_distinct_acc_beacon_data(self):
+    def read_distinct_acc_beacon_data(self, tablename):
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                sql = "SELECT DISTINCT(beacon_id) from acc_beacons;"
+                sql = "SELECT DISTINCT(beacon_id) from " + tablename + ";"
                 cursor.execute(sql)
 
         except Exception as e:
@@ -234,11 +234,11 @@ class ISensitGWMysql(object):
         else:
             self.connection.commit()
 
-    def insert_acc_pitch_roll_data(self, beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, currenttime, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num):
+    def insert_acc_pitch_roll_data(self, tablename, beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, currenttime, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num):
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                sql = "INSERT INTO " + self.table + " VALUES (NULL, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                sql = "INSERT INTO " + tablename + " VALUES (NULL, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 		cursor.execute(sql, (beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList[0], pitchList[1], pitchList[2], pitchList[3], rollList[0], rollList[1], rollList[2], rollList[3], rollList[4], teller, num,))
         except Exception as e:
             print("Error :", str(e))
@@ -247,6 +247,7 @@ class ISensitGWMysql(object):
 
         else:
             self.connection.commit()
+        
 
     def insert_max_rssi(self, beacon_id, created_at, gws):
 #	self.table = self.config_data.get_mysql_credentials()['max_rssi']
@@ -319,7 +320,7 @@ class ISensitGWMysql(object):
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                                sql = "SELECT created_at from acc_beacons WHERE beacon_id = %s ORDER BY created_at asc limit 1"
+                                sql = "SELECT created_at from acc_sensors WHERE beacon_id = %s ORDER BY created_at asc limit 1"
                                 cursor.execute(sql, (beacon_id))
 
         except Exception as e:
@@ -336,7 +337,7 @@ class ISensitGWMysql(object):
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                                sql = "SELECT beacon_rssi from acc_beacons WHERE beacon_id = %s and created_at = %s"
+                                sql = "SELECT beacon_rssi from acc_sensors WHERE beacon_id = %s and created_at = %s"
                                 cursor.execute(sql, (beacon_id, created_at))
 
         except Exception as e:
@@ -367,7 +368,7 @@ class ISensitGWMysql(object):
 
     def delete_earliest_beacon_data(self, beacon_id, created_at):
         cursor = self.connection.cursor()
-        delete_stmt = "DELETE FROM acc_beacons WHERE beacon_id = %s and created_at = %s"
+        delete_stmt = "DELETE FROM acc_sensors WHERE beacon_id = %s and created_at = %s"
 #       print delete_stmt, "  ", row_count
         cursor.execute(delete_stmt, (beacon_id, created_at,))
         self.connection.commit()
@@ -388,4 +389,25 @@ class ISensitGWMysql(object):
     	end_t = datetime.datetime.strptime(currentdate + self.end_time, "%Y-%m-%d %H:%M:%S")
     	today = currenttime.weekday()
         return currenttime > start_t and currenttime < end_t and today < 5
+
+    def read_rssi_data(self):
+	try:
+	    with self.connection.cursor() as cursor:
+	  	cursor.execute("SELECT * FROM rssi LIMIT 25;")
+	except Exception as e:
+	    print("Error: ", str(e))
+	    return None
+	else:
+	    if cursor.rowcount > 0:
+#		print "cursor ", cursor.rowcount
+		return cursor.fetchall()
+#		return cursor.fetchmany(25)
+	    else:
+		return None
+
+    def delete_rssi_data(self, row_count):
+	cursor = self.connection.cursor()
+	delete_stmt = "DELETE FROM rssi WHERE row_count < %s"
+	cursor.execute(delete_stmt, (row_count,))
+	self.connection.commit()
 
