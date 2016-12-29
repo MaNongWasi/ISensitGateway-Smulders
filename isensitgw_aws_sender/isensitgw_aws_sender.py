@@ -26,7 +26,7 @@ device = "Acc"
 def upload_data():
     try:
     	db.connect_to_db()
-    	data = db.read_distinct_acc_beacon_data()
+    	data = db.read_distinct_acc_beacon_data("acc_beacons")
     	print(data)
     	if data is None:
             print("No data left")
@@ -86,6 +86,7 @@ try:
     dydb = ISensitDynamodb(db.gatewayID, db.config_data.get_dynamodb_table(), db.config_data.get_dynamodb_table_person(), device)
 except Exception as e:
     print("Error in ISensitDynamodb, reason: ", str(e))
+
 
 while True:
     if db.working():
