@@ -1,27 +1,26 @@
 import sys
-api_folder = "/home/pi/ISensitGateway/isensitgwapi/"
+api_folder = "/home/ubuntu/ISensitGateway/isensitgwapi/"
 if api_folder not in sys.path:
     sys.path.insert(0, api_folder)
 
 from isensit_sql import *
 from isensit_dynamo import *
-
 device = "Acc"
 gws = ["GW1", "GW2", "GW3", "GW4", "GW5"]
 beacons = ["3262", "13591", "5833", "13576", "12931","13305","13320","13500", "13560","13606" ]
 gw_dict = {}
 
 def upload_data(id, created_at):
-    table_name = "maxrssi_table"     
+    table_name = "maxrssi_table"
     db.connect_to_db()
 
-    if created_at is not None:	
+    if created_at is not None:
         returned_items = dydb.get_rssi_item(id, created_at)
 #	print returned_items
-	
+
 	old_json=db.read_last_acc_beacon_data(table_name,id)
 	if old_json is None:
-	    print "no old data"  
+	    print "no old data"
 	    row_count = 0
 	    for gw in gws:
 		gw_dict[gw] = 0
@@ -31,8 +30,7 @@ def upload_data(id, created_at):
 		gw_dict[gw] = old_json[gw]
 	    print "gw_dict " , gw_dict
 
-		
-	
+
         if returned_items is not None:
 	    for item in returned_items:
 		print "ITEMT ", item
@@ -52,7 +50,7 @@ def upload_data(id, created_at):
 #                    rssi = item['rssi']
 #                    if rssi > rssi_max:
 #                    	rssi_max = rssi
-#			print 'rssi max ', rssi_max 
+#			print 'rssi max ', rssi_max
 #                    	item_info = item["gatewayID"]
 #			print "item_info", item_info
 #	    if item_info == "SMULDERS_GW_001":
@@ -64,11 +62,12 @@ def upload_data(id, created_at):
 #	    elif item_info == "SMULDERS_GW_004":
 #		GW4 = GW4+1
 #		print "GW4 after ", GW4
-	        db.insert_max_rssi(id, currentt, gw_dict)
 	        dydb.insert_rssi_total2(id, gw_dict, currentt)
-	        db.delete_acc_beacon_data(table_name,id,row_count)
 	        dydb.delete_rssi_item(id, currentt)
-	    db.close_db()	 
+            db.insert_max_rssi(id, currentt, gw_dict)
+	    db.delete_acc_beacon_data(table_name,id,row_count)
+
+	    db.close_db()
 #            print(item_info)
 #	    if "gatewayID" in item_info and "created_at" in item_info and "rssi" in item_info:
 #                succeed = dydb.insert_rssi_total(id, item_info)
@@ -90,6 +89,7 @@ while True:
  	    created_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             for id in beacons:
   	        upload_data(id, created_at)
+	    time.sleep(60)
         else:
 	    print("not working hour")
 	    time.sleep(60)
