@@ -15,16 +15,18 @@ class ISensitGW:
     def init_json_config_data(self):
         try:
             # TODO - change to absolute path
-            with open('/home/pi/ISensitGateway/isensitgwapi/ISENSIT_GW.json', 'r') as f:
+            with open('/home/ubuntu/ISensitGateway/isensitgwapi/ISENSIT_GW.json', 'r') as f:
                 self.config_data = json.load(f)
-        except FileNotFoundError:
+#        except FileNotFoundError:
+	except IOError:
             print("File was not found")
             return False
         else:
             return True
 
     def get_gateway_name(self):
-        return self.config_data['gatewayName'] + "_" + self.config_data['gatewayID']
+	return "GW" + self.config_data['gatewayID']
+#        return self.config_data['gatewayName'] + "_" + self.config_data['gatewayID']
 
     def get_post_url(self):
         return self.config_data['post_url']
