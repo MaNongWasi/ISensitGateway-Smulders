@@ -106,7 +106,7 @@ class ISensitGWMysql(object):
                 return cursor.fetchone()
             else:
                 return None
-                
+
     def delete_data(self, table_name, row_count):
         cursor = self.connection.cursor()
         self.table = self.config_data.get_mysql_credentials()[table_name]
@@ -125,7 +125,7 @@ class ISensitGWMysql(object):
 	cursor.close()
         self.connection.commit()
 
-        
+
     def read_last_acc_beacon_data(self, table_name, beacon_id):
 	self.table = self.config_data.get_mysql_credentials()[table_name]
         try:
@@ -199,7 +199,7 @@ class ISensitGWMysql(object):
         cursor.execute(delete_stmt, (row_count,))
 	cursor.close()
         self.connection.commit()
-        
+
     def insert_noise_data(self, noise_id, sensor_db):
         self.table = self.config_data.get_mysql_credentials()['noise_sensor_table']
         try:
@@ -247,14 +247,14 @@ class ISensitGWMysql(object):
 
         else:
             self.connection.commit()
-        
+
 
     def insert_max_rssi(self, beacon_id, created_at, gws):
 #	self.table = self.config_data.get_mysql_credentials()['max_rssi']
-	try: 
+	try:
 	    with self.connection.cursor() as cursor:
-		sql = "INSERT INTO maxrssi VALUES (NULL, %s, %s, %s, %s, %s, %s, %s)" 
-		cursor.execute(sql, (beacon_id, created_at, gws["GW1"], gws["GW2"], gws["GW3"], gws["GW4"], gws["GW5"]))
+		sql = "INSERT INTO maxrssi VALUES (NULL, %s, %s, %s, %s, %s, %s, %s)"
+		cursor.execute(sql, (beacon_id, gws["GW1"], gws["GW2"], gws["GW3"], gws["GW4"], gws["GW5"], created_at))
         except Exception as e:
             print("Error :", str(e))
             self.connection.rollback()
@@ -315,7 +315,22 @@ class ISensitGWMysql(object):
                 return cursor.fetchall()
             else:
                 return None
-        
+
+    def delete_all_data(self, table_name):
+        self.table = self.config_data.get_mysql_credentials()[table_name]
+        try:
+            with self.connection.cursor() as cursor:
+                # Create a new record
+                cursor.execute("DELETE from " + self.table)
+
+        except Exception as e:
+            print("Error :", str(e))
+#            return False
+
+        else:
+	    self.connection.commit()
+#	    return True
+
     def read_earliest_acc_beacon_data(self, beacon_id):
         try:
             with self.connection.cursor() as cursor:
@@ -410,4 +425,35 @@ class ISensitGWMysql(object):
 	delete_stmt = "DELETE FROM rssi WHERE row_count < %s"
 	cursor.execute(delete_stmt, (row_count,))
 	self.connection.commit()
+
+    def insert_rssi_avr(self, gatewayID, beacon_id, rssi, created_at):
+        try:
+            with self.connection.cursor() as cursor:
+                # Create a new record
+                sql = "INSERT INTO rssi_avr VALUES (NULL, %s, %s, %s, %s);"
+                cursor.execute(sql, (gatewayID, beacon_id, rssi, created_at))
+
+        except Exception as e:
+            print("Error :", str(e))
+            self.connection.rollback()
+            return False
+
+        else:
+            self.connection.commit()
+
+
+    def update_rssi_total(self, id, data):
+	try:
+	    with self.connection.cursor() as cursor:
+		for d in data:
+#	 	    print(d["gatewayID"], id, d["rssi"], d["created_at"])
+		    sql = "INSERT INTO rssi_total(beacon_id, " + str(d["gatewayID"]) + ", created_at) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE " + str(d["gatewayID"]) + " = %s;"
+	            cursor.execute(sql, (id, d["rssi"], str(d["created_at"]), d["rssi"]))
+
+	except Exception as e:
+	    print("Error :", str(e))
+	    return False
+	else:
+	    self.connection.commit()
+
 
