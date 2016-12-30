@@ -4,7 +4,7 @@
     "secret_key": "b",
     "token": "d"
   },
-  "gatewayID": "001",
+  "gatewayID": "5",
   "gatewayName": "SMULDERS_GW",
   "fdID": "001",
   "noiseID":"001",
@@ -19,7 +19,10 @@
     "beacon_table": "beacons",
     "acc_beacon_table": "acc_beacons",
     "noise_sensor_table": "noise_sensors",
-    "fd_sensor_table": "fd_sensors"
+    "fd_sensor_table": "fd_sensors",
+    "rssi_table": "rssi",
+    "maxrssi_table": "maxrssi",
+    "rssi_total_table": "rssi_total"
   },
   "dynamodb_credentials": {
     "table": "ISensitSmulders",
