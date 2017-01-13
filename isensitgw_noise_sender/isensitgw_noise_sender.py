@@ -29,6 +29,7 @@ except Exception as e:
 
 #client = boto3.client('dynamodb')
 while True:
+    shift = db.get_shift()
     try:
         db.connect_to_db()
         data = db.read_first_data(table_name)
@@ -44,23 +45,23 @@ while True:
 	
 	    dydb.insert_data(created_at, deviceInfoDict, deviceValueDict) 	    
             
-	    if db.working():
-	    	old_json = dydb.get_item(created_at)
-            	if old_json is None:
-                    noise_count = 0;
-                    sensor_db = 0;
-	    	else:
-		    noise_count = old_json["values"]["noise_count"] + 1
-                    sensor_db = old_json["values"]["sensor_db"] + Decimal(math.pow(10, data["sensor_db"] / 10)).quantize(Decimal("0.01"))
-	        print(sensor_db)	    	    
+#	    if db.working():
+            old_json = dydb.get_item(created_at, shift)
+            if old_json is None:
+                noise_count = 0;
+                sensor_db = 0;
+	    else:
+		noise_count = old_json["values"]["noise_count"] + 1
+                sensor_db = old_json["values"]["sensor_db"] + Decimal(math.pow(10, data["sensor_db"] / 10)).quantize(Decimal("0.01"))
+	    print(sensor_db)	    	    
 
-	        deviceValueDict['noise_count'] =  noise_count
-	        deviceValueDict['sensor_db'] = sensor_db
+	    deviceValueDict['noise_count'] =  noise_count
+	    deviceValueDict['sensor_db'] = sensor_db
 #	        dydb.insert_to_next_table(deviceInfoDict, deviceValueDict)
                 
- 	 	dydb.insert_user_data(device, deviceInfoDict, deviceValueDict, created_at)
+ 	    dydb.insert_user_data(device, deviceInfoDict, deviceValueDict, created_at, shift)
 
- 	    db.delete_data(table_name, row_count)	
+ 	    db.delete_data(table_name, row_count,shift)	
     except Exception as e:
         print("Error in Aws Sender, reason: ", str(e))
     else:

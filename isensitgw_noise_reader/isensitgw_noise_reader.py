@@ -20,7 +20,7 @@ def insert_data():
     currenttime = datetime.datetime.now()
     print currenttime, " ", data
     db.connect_to_db()
-    db.insert_noise_data(noise_id, data)
+    db.insert_noise_data(noise_id, data, db.get_shift())
     db.close_db()
     global running
     if running:

@@ -58,7 +58,7 @@ def get_data():
 	print "-----------------------------"
 	if math.fabs(pm) < 10000 and math.fabs(temp) < 10000 and math.fabs(hum) < 10000:
 	    db.connect_to_db()
-            db.insert_fd_data(fd_id, pm, temp, hum, pm_hour)
+            db.insert_fd_data(fd_id, pm, temp, hum, pm_hour, db.get_shift())
 	    db.close_db()
     r = ""
     global running

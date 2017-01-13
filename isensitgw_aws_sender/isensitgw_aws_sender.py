@@ -21,9 +21,11 @@ data = None
 count = 0
 table_name = "acc_beacon_table"
 device = "Acc"
+shift = 0
 
 #while True:
 def upload_data():
+    global shift
     try:
     	db.connect_to_db()
     	data = db.read_distinct_acc_beacon_data("acc_beacons")
@@ -34,7 +36,7 @@ def upload_data():
 	    for beacon_id in data:
 	        id = beacon_id.values()[0]
 	        if id is not None:
-	            d = db.read_last_acc_beacon_data(table_name, id)
+	            d = db.read_last_acc_beacon_data(table_name, id, shift)
 		    print(d)
                     row_count = d["row_count"]
                     deviceInfoDict['ID'] = str(d["beacon_id"])
@@ -52,14 +54,15 @@ def upload_data():
 		    deviceValueDict['total_count'] = d['teller']
 		    deviceValueDict['rssi'] = d['beacon_rssi']
 		    deviceValueDict['num'] = d['num']
+		    deviceValueDict['shift'] = d['shift']
 #	  	    deviceValueDict['upload_at'] = str(datetime.datetime.now())
 		    created_at = str(d['created_at'])
             	    deviceValueDict['created_at'] = str(d["created_at"])
 		
                     dydb.insert_data(created_at, deviceInfoDict, deviceValueDict)
-                    dydb.insert_user_data(str(d["beacon_id"]), deviceInfoDict, deviceValueDict, created_at)
+                    dydb.insert_user_data(str(d["beacon_id"]), deviceInfoDict, deviceValueDict, created_at, d['shift'])
 		
-		    db.delete_acc_beacon_data(table_name, id, row_count)
+		    db.delete_acc_beacon_data(table_name, id, row_count, shift)
        	 	    print("upload successful, deleting row..")
 		   	
     except Exception as e:
@@ -87,15 +90,16 @@ try:
 except Exception as e:
     print("Error in ISensitDynamodb, reason: ", str(e))
 
-
 while True:
-    if db.working():
+    shift = db.get_shift()
+    if shift != 0:
+#    if db.working():
 #	upload_data()
-	time.sleep(1)
-	if db.half_hour():
-	    upload_data()
+#	time.sleep(1)
+        if db.half_hour():
+            upload_data()
 	else:
 	    print("not half hour")
-	    time.sleep(60)
+        time.sleep(60)
     else:
         print("not working hour")

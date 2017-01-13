@@ -106,33 +106,43 @@ class ISensitGWMysql(object):
                 return cursor.fetchone()
             else:
                 return None
+                
+    def delete_data(self, table_name, row_count, shift):
+        cursor = self.connection.cursor()
+        self.table = self.config_data.get_mysql_credentials()[table_name]
+        delete_stmt = "DELETE FROM " + self.table + " WHERE row_count = %s and shift = %s"
+#	print delete_stmt, "  ", row_count
+        cursor.execute(delete_stmt, (row_count, shift,))
+	cursor.close()
+        self.connection.commit()
 
-    def delete_data(self, table_name, row_count):
+    def delete_data2(self, table_name, row_count):
         cursor = self.connection.cursor()
         self.table = self.config_data.get_mysql_credentials()[table_name]
         delete_stmt = "DELETE FROM " + self.table + " WHERE row_count = %s"
-#	print delete_stmt, "  ", row_count
-        cursor.execute(delete_stmt, (row_count,))
-	cursor.close()
+#       print delete_stmt, "  ", row_count
+        cursor.execute(delete_stmt, (row_count, shift,))
+        cursor.close()
         self.connection.commit()
 
-    def delete_acc_beacon_data(self, table_name, beacon_id, row_count):
+
+    def delete_acc_beacon_data(self, table_name, beacon_id, row_count, shift):
         cursor = self.connection.cursor()
         self.table = self.config_data.get_mysql_credentials()[table_name]
-        delete_stmt = "DELETE FROM " + self.table + " WHERE beacon_id = %s AND row_count < %s"
+        delete_stmt = "DELETE FROM " + self.table + " WHERE beacon_id = %s AND row_count < %s AND shift = %s"
 #       print delete_stmt, "  ", row_count
-        cursor.execute(delete_stmt, (beacon_id, row_count,))
+        cursor.execute(delete_stmt, (beacon_id, row_count,shift,))
 	cursor.close()
         self.connection.commit()
 
-
-    def read_last_acc_beacon_data(self, table_name, beacon_id):
+        
+    def read_last_acc_beacon_data(self, table_name, beacon_id, shift):
 	self.table = self.config_data.get_mysql_credentials()[table_name]
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-				sql = "SELECT * from " + self.table + " WHERE beacon_id = %s order by row_count desc limit 1;"
-				cursor.execute(sql, beacon_id)
+				sql = "SELECT * from " + self.table + " WHERE beacon_id = %s and shift = %s order by row_count desc limit 1;"
+				cursor.execute(sql, (beacon_id, shift))
 
         except Exception as e:
             print("Error :", str(e))
@@ -199,14 +209,14 @@ class ISensitGWMysql(object):
         cursor.execute(delete_stmt, (row_count,))
 	cursor.close()
         self.connection.commit()
-
-    def insert_noise_data(self, noise_id, sensor_db):
+        
+    def insert_noise_data(self, noise_id, sensor_db, shift):
         self.table = self.config_data.get_mysql_credentials()['noise_sensor_table']
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                sql = "INSERT INTO " + self.table + " VALUES (NULL, %s, %s, CURRENT_TIMESTAMP)"
-                cursor.execute(sql, (noise_id, sensor_db))
+                sql = "INSERT INTO " + self.table + " VALUES (NULL, %s, %s, CURRENT_TIMESTAMP, %s)"
+                cursor.execute(sql, (noise_id, sensor_db, shift))
 
         except Exception as e:
             print("Error :", str(e))
@@ -218,13 +228,13 @@ class ISensitGWMysql(object):
 
 
 
-    def insert_fd_data(self, fd_id, pm, temp, hum, pm_hour):
+    def insert_fd_data(self, fd_id, pm, temp, hum, pm_hour, shift):
         self.table = self.config_data.get_mysql_credentials()['fd_sensor_table']
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                sql = "INSERT INTO " + self.table + " VALUES (NULL, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)"
-                cursor.execute(sql, (fd_id, pm, temp, hum, pm_hour))
+                sql = "INSERT INTO " + self.table + " VALUES (NULL, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, %s)"
+                cursor.execute(sql, (fd_id, pm, temp, hum, pm_hour, shift))
 
         except Exception as e:
             print("Error :", str(e))
@@ -234,12 +244,12 @@ class ISensitGWMysql(object):
         else:
             self.connection.commit()
 
-    def insert_acc_pitch_roll_data(self, tablename, beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, currenttime, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num):
+    def insert_acc_pitch_roll_data(self, tablename, beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, currenttime, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num, shift):
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                sql = "INSERT INTO " + tablename + " VALUES (NULL, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-		cursor.execute(sql, (beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList[0], pitchList[1], pitchList[2], pitchList[3], rollList[0], rollList[1], rollList[2], rollList[3], rollList[4], teller, num,))
+                sql = "INSERT INTO " + tablename + " VALUES (NULL, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+		cursor.execute(sql, (beacon_id, beacon_accx, beacon_accy, beacon_accz, beacon_rssi, beacon_accsum, pitch, roll, levelPitch, levelRoll, pitchList[0], pitchList[1], pitchList[2], pitchList[3], rollList[0], rollList[1], rollList[2], rollList[3], rollList[4], teller, num, shift,))
         except Exception as e:
             print("Error :", str(e))
             self.connection.rollback()
@@ -247,14 +257,14 @@ class ISensitGWMysql(object):
 
         else:
             self.connection.commit()
-
+        
 
     def insert_max_rssi(self, beacon_id, created_at, gws):
 #	self.table = self.config_data.get_mysql_credentials()['max_rssi']
-	try:
+	try: 
 	    with self.connection.cursor() as cursor:
-		sql = "INSERT INTO maxrssi VALUES (NULL, %s, %s, %s, %s, %s, %s, %s)"
-		cursor.execute(sql, (beacon_id, gws["GW1"], gws["GW2"], gws["GW3"], gws["GW4"], gws["GW5"], created_at))
+		sql = "INSERT INTO maxrssi VALUES (NULL, %s, %s, %s, %s, %s, %s, %s)" 
+		cursor.execute(sql, (beacon_id, created_at, gws["GW1"], gws["GW2"], gws["GW3"], gws["GW4"], gws["GW5"]))
         except Exception as e:
             print("Error :", str(e))
             self.connection.rollback()
@@ -281,12 +291,12 @@ class ISensitGWMysql(object):
             self.connection.commit()
 
 
-    def read_cal_val(self, beacon_id):
+    def read_cal_val(self, beacon_id, shift):
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                                sql = "SELECT * from users WHERE beacon_id = %s"
-                                cursor.execute(sql, (beacon_id))
+                                sql = "SELECT * from users WHERE beacon_id = %s and shift = %s"
+                                cursor.execute(sql, (beacon_id, shift))
 
         except Exception as e:
             print("Error :", str(e))
@@ -315,22 +325,7 @@ class ISensitGWMysql(object):
                 return cursor.fetchall()
             else:
                 return None
-
-    def delete_all_data(self, table_name):
-        self.table = self.config_data.get_mysql_credentials()[table_name]
-        try:
-            with self.connection.cursor() as cursor:
-                # Create a new record
-                cursor.execute("DELETE from " + self.table)
-
-        except Exception as e:
-            print("Error :", str(e))
-#            return False
-
-        else:
-	    self.connection.commit()
-#	    return True
-
+        
     def read_earliest_acc_beacon_data(self, beacon_id):
         try:
             with self.connection.cursor() as cursor:
@@ -352,7 +347,7 @@ class ISensitGWMysql(object):
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                                sql = "SELECT beacon_rssi from acc_sensors WHERE beacon_id = %s and created_at = %s"
+                                sql = "SELECT beacon_rssi from acc_sensors WHERE beacon_id = %s and  created_at = %s"
                                 cursor.execute(sql, (beacon_id, created_at))
 
         except Exception as e:
@@ -381,11 +376,11 @@ class ISensitGWMysql(object):
             else:
                 return None
 
-    def delete_earliest_beacon_data(self, beacon_id, created_at):
+
+    def delete_earliest_beacon_data(self, beacon_id, pre_t, created_at):
         cursor = self.connection.cursor()
-        delete_stmt = "DELETE FROM acc_sensors WHERE beacon_id = %s and created_at = %s"
-#       print delete_stmt, "  ", row_count
-        cursor.execute(delete_stmt, (beacon_id, created_at,))
+        delete_stmt = "DELETE FROM acc_sensors WHERE beacon_id = %s and created_at between %s and %s"
+        cursor.execute(delete_stmt, (beacon_id, pre_t, created_at,))
         self.connection.commit()
 
 
@@ -394,8 +389,11 @@ class ISensitGWMysql(object):
 
     def half_hour(self):
     	currenttime = datetime.datetime.now()
-    	return currenttime.minute == 00 or currenttime.minute == 23
+    	return currenttime.minute == 00 or currenttime.minute == 30
 
+    def five_sec(self):
+	currenttime = datetime.datetime.now()
+	return currenttime.second%5 == 0 
 
     def working(self):
     	currenttime = datetime.datetime.now()
@@ -404,6 +402,26 @@ class ISensitGWMysql(object):
     	end_t = datetime.datetime.strptime(currentdate + self.end_time, "%Y-%m-%d %H:%M:%S")
     	today = currenttime.weekday()
         return currenttime > start_t and currenttime < end_t and today < 5
+
+    def get_shift(self):
+	currenttime = datetime.datetime.now()
+	currentdate = currenttime.strftime("%Y-%m-%d")
+	start_t = datetime.datetime.strptime(currentdate + self.start_time, "%Y-%m-%d %H:%M:%S")
+	end_t = datetime.datetime.strptime(currentdate + self.end_time, "%Y-%m-%d %H:%M:%S")
+#	today = currenttime.weekday()
+	if currenttime > start_t and currenttime < end_t:  #7---19
+	    return 1
+	elif currenttime > end_t and currenttime < start_t + datetime.timedelta(days=1): #19--7
+	    return 2
+	else:
+	    return 0
+#	if currenttime > start_t and currenttime < end_t + datetime.timedelta(hours=12):  #7--15
+#	    return 1
+#	elif currenttime > start_t + datetime.timedelta(hours=12) and currenttime < end_t + datetime.timedelta(days=1):
+#	    #19--3 tomorrow
+#	    return 2
+#	else:
+#	    return 0
 
     def read_rssi_data(self):
 	try:
@@ -425,35 +443,4 @@ class ISensitGWMysql(object):
 	delete_stmt = "DELETE FROM rssi WHERE row_count < %s"
 	cursor.execute(delete_stmt, (row_count,))
 	self.connection.commit()
-
-    def insert_rssi_avr(self, gatewayID, beacon_id, rssi, created_at):
-        try:
-            with self.connection.cursor() as cursor:
-                # Create a new record
-                sql = "INSERT INTO rssi_avr VALUES (NULL, %s, %s, %s, %s);"
-                cursor.execute(sql, (gatewayID, beacon_id, rssi, created_at))
-
-        except Exception as e:
-            print("Error :", str(e))
-            self.connection.rollback()
-            return False
-
-        else:
-            self.connection.commit()
-
-
-    def update_rssi_total(self, id, data):
-	try:
-	    with self.connection.cursor() as cursor:
-		for d in data:
-#	 	    print(d["gatewayID"], id, d["rssi"], d["created_at"])
-		    sql = "INSERT INTO rssi_total(beacon_id, " + str(d["gatewayID"]) + ", created_at) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE " + str(d["gatewayID"]) + " = %s;"
-	            cursor.execute(sql, (id, d["rssi"], str(d["created_at"]), d["rssi"]))
-
-	except Exception as e:
-	    print("Error :", str(e))
-	    return False
-	else:
-	    self.connection.commit()
-
 
