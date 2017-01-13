@@ -54,10 +54,18 @@ LDeviceMode = [
     {
         "3axisBeacons":
             [
-                ["UUID", -7, -3, "S", " ", "DI"],
-                ["ID", -11, -7, "A", " ", "DI"],
-                ["A", -1, 0, "R", " ", "V"],
-                ["B", -3, -1, "F", " ", "V"]
+                ["UUID", 10, 17, "S", " ", "DI"],
+#                ["ID", -11, -7, "A", " ", "DI"],
+                ["RSSI", -1, 0, "R", " ", "V"],
+		["ACCXST", 23, 25, "F", " ", "V"],
+                ["ACCYST", 25, 27, "F", " ", "V"],
+                ["ACCZST", 27, 29, "F", " ", "V"],		
+		["GYROXST", 17, 19, "F", " ", "V"],
+                ["GYROYST", 19, 21, "F", " ", "V"],
+                ["GYROZST", 21, 23, "F", " ", "V"],
+		["MAGXST", 29, 31, "F", " ", "V"],
+		["MAGYST", 31, 33, "F", " ", "V"],
+                ["MAGZST", 33, 35, "F", " ", "V"]
             ]
     },
 
@@ -66,12 +74,12 @@ LDeviceMode = [
 # device_type: device_name
 DDevice = {
     #    "699ebc80e1f311e39a0f0cf3ee3bc012": [LSupportedDevices[0], LDeviceMode[0]],
-    "0f09454d426561636f6e": [LSupportedDevices[0], LDeviceMode[2]],
+        "0f09454d426561636f6e": [LSupportedDevices[0], LDeviceMode[2]],
     #    "ebefd08370a247c89837e7b5634df524" :[LSupportedDevices[1], LDeviceMode[0]],
     #    "fda50693a4e24fb1afcfc6eb07647825": [LSupportedDevices[3], LDeviceMode[0]],
     #    "e2c56db5dffb48d2b060d0f5a71096e0": [LSupportedDevices[5], LDeviceMode[0]],
     #    "05160818": [LSupportedDevices[6], LDeviceMode[2]],
-
+    #    "02010616160918": [LSupportedDevices[4], LDeviceMode[4]],
 }
 
 
@@ -182,6 +190,11 @@ def getInt(pkt):
 def getByte(pkt):
     return struct.unpack("B", pkt)[0]
 
+def getSTInt(pkt):
+    myInteger = struct.unpack("B", pkt[1])[0] * 256 + struct.unpack("B", pkt[0])[0]
+    if myInteger > 32767:
+	myInteger = myInteger - 65536
+    return myInteger
 
 def getFloat(pkt, value_type):
     # myString = "";
@@ -191,20 +204,34 @@ def getFloat(pkt, value_type):
     # if(struct.unpack("B", pkt[0])[0] & 0xF0 == 0xB0):
     # myInteger = (struct.unpack("B", pkt[0])[0] & 0x07) * multiple + struct.unpack("B", pkt[1])[0];
 
-    # myString = "%02x" %struct.unpack("B",pkt[0])[0] + "%02x" %struct.unpack("B",pkt[1])[0] + "   %d" %myInteger
-    if ("ACC" in value_type):
-        mySensor = getAcc(pkt)
-        # myInteger = (struct.unpack("B", pkt[0])[0] & 0x07) * multiple + struct.unpack("B", pkt[1])[0];
-        # if(myInteger > 1023):
-        # myInteger = myInteger - 2048
-        # mySensor = myInteger * 0.015625
-    elif (value_type == "DEGREE"):
-        mySensor = getEncoder(pkt)
-        # myInteger = (struct.unpack("B", pkt[0])[0]) * multiple + struct.unpack("B", pkt[1])[0];
-        # mySensor = (myInteger >> 1) & 0x3FFF
+    if ("ST" in value_type):
+        mySensor = getST(pkt, value_type)
         # mySensor = myInteger
+
+    else:
+    	if ("ACC" in value_type):
+            mySensor = getAcc(pkt)
+        elif (value_type == "DEGREE"):
+            mySensor = getEncoder(pkt)
+
     return mySensor
 
+
+def getST(pkt, type):
+    ST = 0
+    param = 0
+
+    if ("ACC" in type):
+	param = 16384.0
+    elif ("GYRO" in type):
+	param = 65536.0 / 500.0  #128.0
+    elif ("MAG" in type):
+#	param = 65536.0 / 4900.0
+	param = 32760 / 4912.0
+
+    ST = struct.unpack("<h", pkt)[0] / param
+#    ST = getSTInt(pkt) / param
+    return ST
 
 def getAcc(pkt):
     # myInteger = (struct.unpack("B", pkt[0])[0] & 0x07) * 256 + struct.unpack("B", pkt[1])[0];  #16G
