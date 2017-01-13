@@ -212,11 +212,12 @@ class ISensitDynamodb():
          else:
              return True
 
-    def delete_rssi_item(self, deviceID, created_at):
+    def delete_rssi_item(self, id, data):
+	for d in data:
             try:
                 delete_item = {
-                    'deviceID': deviceID,
-                    'created_at': created_at
+                    'deviceID': id,
+                    'timestamp': d['created_at'] + "/" + d['gatewayID']
                 }
 #                print(delete_item)
                 with self.table_rssi.batch_writer() as batch:

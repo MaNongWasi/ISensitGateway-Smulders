@@ -250,7 +250,6 @@ class ISensitGWMysql(object):
 
 
     def insert_max_rssi(self, beacon_id, created_at, gws, shift):
-	print shift, gws
 #	self.table = self.config_data.get_mysql_credentials()['max_rssi']
 	try:
 	    with self.connection.cursor() as cursor:

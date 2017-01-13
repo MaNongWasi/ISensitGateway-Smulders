@@ -56,12 +56,12 @@ def upload_data(id, created_at,start_t):
 			    	item_info = gw
 #			    	print "item_info", item_info
 		    gw_dict[item_info] = gw_dict[item_info] + 1
-   		    print "GW DICT ", gw_dict
+#   		    print "GW DICT ", gw_dict
                     db.insert_max_rssi(id, currentt, gw_dict, shift)
 
 
                 if dydb.insert_rssi_total(id, gw_dict, created_at, shift):
-#	            dydb.delete_rssi_item(id, returned_items)
+	            dydb.delete_rssi_item(id, returned_items)
 #	            db.delete_acc_beacon_data(table_name,id,row_count) # also delete all data?
 	            db.delete_all_data(rssi_table)
 
@@ -78,17 +78,19 @@ except Exception as e:
     print("Error in ISensitDynamodb, reason: ", str(e))
 
 
-#while True:
+while True:
 #    if db.working():
-if db.half_hour():
-    currentt = datetime.datetime.now()
-    created_at = currentt.strftime("%Y-%m-%d %H:%M:%S")
-    start_t = currentt - datetime.timedelta(minutes=30)
-    start_t = start_t.strftime("%Y-%m-%d %H:%M:%S")
-    print "created_at",created_at
-    print "start_t ",start_t
-    for id in beacons:
-        upload_data(id, created_at,start_t)
+    if db.half_hour():
+        currentt = datetime.datetime.now()
+        created_at = currentt.strftime("%Y-%m-%d %H:%M:%S")
+        start_t = currentt - datetime.timedelta(minutes=30)
+        start_t = start_t.strftime("%Y-%m-%d %H:%M:%S")
+        print "created_at",created_at
+        print "start_t ",start_t
+        for id in beacons:
+            upload_data(id, created_at,start_t)
+
+
 #        time.sleep(60)
 ##       else:
 ##	    print("not working hour")
@@ -96,7 +98,7 @@ if db.half_hour():
 #    else:
 #	print("not working hour")
 
-#start_t = "2017-01-12 13:50:00"
-#created_at = "2017-01-13 13:45:20"
+#start_t = "2017-01-12 13:40:00"
+#created_at = "2017-01-13 13:46:20"
 #for id in beacons:
 #    upload_data(id, created_at,start_t)
