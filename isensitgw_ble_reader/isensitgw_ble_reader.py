@@ -79,7 +79,7 @@ def get_lift(beacon_id, accx, accy, accz, rssi, num):
     global rollLevel
     currenttime = datetime.datetime.now()
 
-    old_json = db.read_last_acc_beacon_data(table_name, beacon_id, shift)
+    old_json = db.read_last_acc_beacon_data2(table_name, beacon_id, shift)
 
     if old_json is None:
 #	print "none"
@@ -93,6 +93,7 @@ def get_lift(beacon_id, accx, accy, accz, rssi, num):
 	pitchList = [0, 0, 0, 0]
         rollList = [0, 0, 0, 0, 0]
         teller = 0
+	db.delete_all_data(table_name) #changed!!!!
     else:
 	row_count = old_json["row_count"]
 	pitchList = [old_json["levelPitch1"], old_json["levelPitch2"], old_json["levelPitch3"], old_json["levelPitch4"]]
@@ -119,7 +120,7 @@ def get_lift(beacon_id, accx, accy, accz, rssi, num):
 #    print "newt ", currenttime.strftime("%Y-%m-%d")
     
     db.insert_acc_pitch_roll_data("acc_beacons", beacon_id, accx, accy, accz, rssi, currenttime, acc_sum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num, shift)
-    db.insert_acc_pitch_roll_data("acc_sensors", beacon_id, accx, accy, accz, rssi, currenttime, acc_sum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num, shift)
+#    db.insert_acc_pitch_roll_data("acc_sensors", beacon_id, accx, accy, accz, rssi, currenttime, acc_sum, pitch, roll, levelPitch, levelRoll, pitchList, rollList, teller, num, shift)
     if row_count > 0:
 	db.delete_data(table_name, row_count, shift)
     db.close_db()

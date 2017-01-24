@@ -126,13 +126,30 @@ class ISensitGWMysql(object):
         self.connection.commit()
 
         
-    def read_last_acc_beacon_data(self, table_name, beacon_id, shift):
+    def read_last_acc_beacon_data(self, table_name, beacon_id):
 	self.table = self.config_data.get_mysql_credentials()[table_name]
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-				sql = "SELECT * from " + self.table + " WHERE beacon_id = %s and shift = %s order by row_count desc limit 1;"
-				cursor.execute(sql, (beacon_id, shift))
+				sql = "SELECT * from " + self.table + " WHERE beacon_id = %s order by row_count desc limit 1;"
+				cursor.execute(sql, (beacon_id))
+
+        except Exception as e:
+            print("Error :", str(e))
+            return None
+
+        else:
+            if cursor.rowcount > 0:
+                return cursor.fetchone()
+            else:
+                return None
+    def read_last_acc_beacon_data2(self, table_name, beacon_id, shift):
+        self.table = self.config_data.get_mysql_credentials()[table_name]
+        try:
+            with self.connection.cursor() as cursor:
+                # Create a new record
+                                sql = "SELECT * from " + self.table + " WHERE beacon_id = %s and shift = %s order by row_count desc limit 1;"
+                                cursor.execute(sql, (beacon_id, shift))
 
         except Exception as e:
             print("Error :", str(e))
@@ -265,11 +282,10 @@ class ISensitGWMysql(object):
 
 
     def insert_rssi_data(self, beacon_id, rssi_avr, created_at):
-        self.table = self.config_data.get_mysql_credentials()['noise_sensor_table']
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                sql = "INSERT INTO rssi VALUES (NULL, %s, %s, %s, %s)"
+                sql = "INSERT INTO rssi VALUES (NULL, %s, %s, %s)"
                 cursor.execute(sql, (beacon_id, rssi_avr, created_at))
 
         except Exception as e:
@@ -316,12 +332,12 @@ class ISensitGWMysql(object):
             else:
                 return None
         
-    def read_earliest_acc_beacon_data(self, beacon_id):
+    def read_earliest_acc_beacon_data(self, beacon_id,shift):
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                                sql = "SELECT created_at from acc_sensors WHERE beacon_id = %s ORDER BY created_at asc limit 1"
-                                cursor.execute(sql, (beacon_id))
+                                sql = "SELECT created_at from acc_beacons WHERE beacon_id = %s and shift = %s ORDER BY created_at asc limit 1"
+                                cursor.execute(sql, (beacon_id,shift))
 
         except Exception as e:
             print("Error :", str(e))
@@ -337,7 +353,7 @@ class ISensitGWMysql(object):
         try:
             with self.connection.cursor() as cursor:
                 # Create a new record
-                                sql = "SELECT beacon_rssi from acc_sensors WHERE beacon_id = %s and  created_at = %s"
+                                sql = "SELECT beacon_rssi from acc_beacons WHERE beacon_id = %s and  created_at = %s"
                                 cursor.execute(sql, (beacon_id, created_at))
 
         except Exception as e:
@@ -399,9 +415,10 @@ class ISensitGWMysql(object):
 	start_t = datetime.datetime.strptime(currentdate + self.start_time, "%Y-%m-%d %H:%M:%S")
 	end_t = datetime.datetime.strptime(currentdate + self.end_time, "%Y-%m-%d %H:%M:%S")
 #	today = currenttime.weekday()
-	if currenttime > start_t and currenttime < end_t:  #7---19
+	if currenttime >= start_t and currenttime < end_t:  #7---19
 	    return 1
-	elif currenttime > end_t and currenttime < start_t + datetime.timedelta(days=1): #19--7
+#	elif currenttime > end_t and currenttime < start_t + datetime.timedelta(days=1): #19--7
+	elif currenttime >= end_t or currenttime < start_t:
 	    return 2
 	else:
 	    return 0

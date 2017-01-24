@@ -29,7 +29,6 @@ except Exception as e:
 
 #client = boto3.client('dynamodb')
 while True:
-    shift = db.get_shift()
     try:
         db.connect_to_db()
         data = db.read_first_data(table_name)
@@ -41,7 +40,9 @@ while True:
 	    deviceInfoDict['ID'] = str(data["noise_id"])
             deviceValueDict['sensor_db'] = Decimal(data["sensor_db"]).quantize(Decimal("0.01"))
 	    created_at = str(data["created_at"])
+	    shift = data["shift"]
             deviceValueDict['created_at'] = str(data["created_at"])
+	    deviceValueDict['shift'] = shift
 	
 	    dydb.insert_data(created_at, deviceInfoDict, deviceValueDict) 	    
             
@@ -59,7 +60,7 @@ while True:
 	    deviceValueDict['sensor_db'] = sensor_db
 #	        dydb.insert_to_next_table(deviceInfoDict, deviceValueDict)
                 
- 	    dydb.insert_user_data(device, deviceInfoDict, deviceValueDict, created_at, shift)
+ 	    dydb.insert_user_data2(device, deviceInfoDict, deviceValueDict, created_at, shift)
 
  	    db.delete_data(table_name, row_count,shift)	
     except Exception as e:
