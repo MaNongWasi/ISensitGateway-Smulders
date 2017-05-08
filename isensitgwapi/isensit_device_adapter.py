@@ -9,6 +9,7 @@ LSupportedDevices = [
     "SENSOR TAG",
     "Ghostyu Beacon",
     "Encoder",
+    "PIR",
 ]
 
 # "Mode_Name": "Item", starting_pos, ending_pos, data_type, unit, device_info or value"
@@ -52,7 +53,7 @@ LDeviceMode = [
             ]
     },
     {
-        "3axisBeacons":
+        "sensorTag":
             [
                 ["UUID", 10, 17, "S", " ", "DI"],
 #                ["ID", -11, -7, "A", " ", "DI"],
@@ -68,18 +69,28 @@ LDeviceMode = [
                 ["MAGZST", 33, 35, "F", " ", "V"]
             ]
     },
+    {
+        "PIR":
+            [
+		["UUID", -6, -2, "S", " ", "DI"],
+                ["ID", -11, -6, "A", " ", "DI"],
+                ["RSSI", -1, 0, "R", "dBm", "V"],
+                ["SIGNAL", -2, -1, "I", " ", "V"]
+            ]
+    },
 
 ]
 
 # device_type: device_name
 DDevice = {
     #    "699ebc80e1f311e39a0f0cf3ee3bc012": [LSupportedDevices[0], LDeviceMode[0]],
-        "0f09454d426561636f6e": [LSupportedDevices[0], LDeviceMode[2]],
+    #    "0f09454d426561636f6e": [LSupportedDevices[0], LDeviceMode[2]],
     #    "ebefd08370a247c89837e7b5634df524" :[LSupportedDevices[1], LDeviceMode[0]],
     #    "fda50693a4e24fb1afcfc6eb07647825": [LSupportedDevices[3], LDeviceMode[0]],
     #    "e2c56db5dffb48d2b060d0f5a71096e0": [LSupportedDevices[5], LDeviceMode[0]],
     #    "05160818": [LSupportedDevices[6], LDeviceMode[2]],
-    #    "02010616160918": [LSupportedDevices[4], LDeviceMode[4]],
+        "02010616160918": [LSupportedDevices[4], LDeviceMode[4]],
+	"04160918": [LSupportedDevices[7], LDeviceMode[5]],
 }
 
 
@@ -120,7 +131,8 @@ def deviceStruct(device_type):
             return "error"
         else:
             for key in device_mode:
-                return (device_mode[key])
+		return {"device":key, "value":device_mode[key]}
+#                return device_mode[key]
     else:
         print("Device is Not Supported.")
         return "error"
@@ -133,7 +145,7 @@ def findDeviceType(sending_interface, data):
             # see if its a Ibeacon
             for key in device_mode:
                 device_struct = device_mode[key]
-                # print(device_struct)
+                #print(device_struct)
                 input = data[device_struct[0][1]: device_struct[0][2]]
                 result = getString(input)
             if (isSupported(result)):
@@ -146,8 +158,10 @@ def parseDeviceStruct(device_structure, pkt):
     jsonDict = {}
     deviceInfoDict = {}
     deviceValueDict = {}
+    
+    deviceInfoDict["device"] = device_structure["device"]
 
-    for item in device_structure:
+    for item in device_structure["value"]:
         input = pkt[item[1]: item[2]]
 
         if item[3] == "S":
@@ -169,6 +183,8 @@ def parseDeviceStruct(device_structure, pkt):
             result = getACIItoString(input)
 	if item[3] == "B":
 	    result = getByte(input)
+#	if item[3] == "NM":
+#	    print input
         if item[5] == "DI":
             deviceInfoDict[item[0]] = str(result), item[4]
         if item[5] == "V":
@@ -180,11 +196,14 @@ def parseDeviceStruct(device_structure, pkt):
 
 
 def getInt(pkt):
-    myInteger = 0
-    multiple = 256
-    for c in pkt:
-        myInteger += struct.unpack("B", c)[0] * multiple
-        multiple = 1
+    if len(pkt) > 1:
+        myInteger = 0
+        multiple = 256
+        for c in pkt:
+            myInteger += struct.unpack("B", c)[0] * multiple
+            multiple = 1
+    else:
+	myInteger = struct.unpack("B", pkt)[0]
     return myInteger
 
 def getByte(pkt):
@@ -213,6 +232,8 @@ def getFloat(pkt, value_type):
             mySensor = getAcc(pkt)
         elif (value_type == "DEGREE"):
             mySensor = getEncoder(pkt)
+	elif (value_type == "SIGNAL"):
+	    mySensor == getInt(pkt)
 
     return mySensor
 
