@@ -1,2 +1,1 @@
-# ISensitGateway
-sorce code for havep
+bluetooth scan referenced from https://github.com/switchdoclabs/iBeacon-Scanner-
